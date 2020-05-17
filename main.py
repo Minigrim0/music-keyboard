@@ -1,7 +1,7 @@
 # import sys
 import pygame
 import time
-from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_RETURN
+import pygame.locals as locals
 from scamp import Session
 
 # sys.path.insert(0, "src/")
@@ -11,18 +11,16 @@ from src.constant import TIME_POS, DURATION_MAX, \
     running, playButton, recordingButton, \
     background, back_button, fonts
 
+instruments = ["piano", "guitar", "trumpet", "violin"]
 screen = pygame.display.set_mode((800, 480))
 
-chan = [channel() for x in range(8)]
+s = Session()
+chan = [channel(s, instrument=x) for x in instruments]
+chan[0].select(True)
+selected_chan = 0
 
 startTime = time.time()
 timeElapsed = 0
-
-s = Session()
-piano = s.new_part("piano")
-
-print(pygame.locals.K_a)
-print(pygame.locals.K_TAB)
 
 keys = {pygame.locals.K_a: 48, 97: 60, 113: 72,
         pygame.locals.K_TAB: 49, 122: 61, 115: 73,
@@ -49,16 +47,28 @@ while running:
 
     # Handling events
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == locals.QUIT:
             running = False
         else:
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE:
+            if event.type == locals.KEYDOWN:
+                if event.key == locals.K_SPACE:
                     recordingButton.toggle()
-                elif event.key == K_RETURN:
+                elif event.key == locals.K_RETURN:
                     playButton.toggle()
+                elif event.key == locals.K_UP:
+                    chan[selected_chan].select(False)
+                    selected_chan -= 1
+                    if selected_chan < 0:
+                        selected_chan = len(chan)-1
+                    chan[selected_chan].select(True)
+                elif event.key == locals.K_DOWN:
+                    chan[selected_chan].select(False)
+                    selected_chan += 1
+                    if selected_chan == len(chan):
+                        selected_chan = 0
+                    chan[selected_chan].select(True)
                 elif event.key in keys.keys():
-                    piano.play_note(keys[event.key], 1, 0.3, blocking=False)
+                    chan[selected_chan].playNote(keys[event.key])
                 else:
                     print(event.key)
 
@@ -69,7 +79,7 @@ while running:
     playButton.draw(screen)
     back_button.draw(screen)
 
-    for x in range(8):
+    for x in range(len(chan)):
         chan[x].draw(screen, x)
 
     pygame.draw.line(
