@@ -1,5 +1,8 @@
 # music-keyboard
-Transform your keyboard into a 1-8 channel looper
+A multi channel instrument looper for linux
+
+## WIP
+more informations coming soon
 
 ## Installation
 ```
